@@ -1,29 +1,49 @@
 from flask import Flask, request, jsonify
-import math
 
 app = Flask(__name__)
 
+BATTERY_CAPACITY_KWH = 60  # average EV battery
+
+def calculate_energy_needed(battery_level):
+    missing_percentage = 100 - battery_level
+    energy_needed = (missing_percentage / 100) * BATTERY_CAPACITY_KWH
+    return round(energy_needed, 2)
+
+def estimate_charging_time(energy_needed, available_kw):
+    if available_kw == 0:
+        return 999
+    return round(energy_needed / available_kw, 2)
+
+def calculate_carbon_emission(energy_needed, carbon_intensity):
+    # kg CO2 per kWh * energy
+    return round(energy_needed * carbon_intensity, 2)
+
 def calculate_score(station, battery):
 
-    cost_factor = station["price_per_kwh"] * 100
+    energy_needed = calculate_energy_needed(battery)
 
-    queue_penalty = station["queue"] * 8
-
-    solar_bonus = station["solar_available_kw"] * 1.5
-
-    carbon_penalty = station["carbon_intensity"] * 50
-
-    battery_urgency = (100 - battery) * 1.2
-
-    score = (
-        solar_bonus
-        + battery_urgency
-        - cost_factor
-        - queue_penalty
-        - carbon_penalty
+    charging_time = estimate_charging_time(
+        energy_needed,
+        station["solar_available_kw"] + station["grid_supply_kw"]
     )
 
-    return score
+    carbon_emission = calculate_carbon_emission(
+        energy_needed,
+        station["carbon_intensity"]
+    )
+
+    cost_factor = station["price_per_kwh"] * energy_needed
+    queue_penalty = station["queue"] * 5
+
+    score = (
+        200
+        - cost_factor
+        - (charging_time * 10)
+        - (carbon_emission * 2)
+        - queue_penalty
+    )
+
+    return score, energy_needed, charging_time, carbon_emission
 
 
 @app.route("/optimize", methods=["POST"])
@@ -35,24 +55,31 @@ def optimize():
 
     best_station = None
     best_score = -999999
-
-    station_scores = []
+    detailed_results = []
 
     for s in stations:
-        score = calculate_score(s, battery)
-        station_scores.append({
+
+        score, energy_needed, charging_time, carbon_emission = calculate_score(s, battery)
+
+        result = {
             "station_id": s["station_id"],
-            "score": score
-        })
+            "score": round(score, 2),
+            "energy_needed_kwh": energy_needed,
+            "charging_time_hours": charging_time,
+            "carbon_emission_kg": carbon_emission
+        }
+
+        detailed_results.append(result)
 
         if score > best_score:
             best_score = score
             best_station = s
+            best_details = result
 
     return jsonify({
         "recommended_station": best_station,
-        "score": best_score,
-        "all_scores": station_scores
+        "metrics": best_details,
+        "all_station_analysis": detailed_results
     })
 
 

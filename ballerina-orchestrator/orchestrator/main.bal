@@ -1,4 +1,5 @@
 import ballerina/http;
+import ballerina/log;
 
 service /orchestrator on new http:Listener(8080) {
 
@@ -12,7 +13,6 @@ service /orchestrator on new http:Listener(8080) {
 
         http:Client aiClient = check new ("http://localhost:5003");
 
-        // Safely extract battery level
         int batteryLevel = 0;
 
         if evResponse is map<json> {
@@ -24,12 +24,16 @@ service /orchestrator on new http:Listener(8080) {
             }
         }
 
+        log:printInfo("Battery Level: " + batteryLevel.toString());
+
         json payload = {
             battery_level: batteryLevel,
             stations: stationsResponse
         };
 
         json result = check aiClient->post("/optimize", payload);
+
+        log:printInfo("AI Optimization completed");
 
         return {
             vehicle: evResponse,
