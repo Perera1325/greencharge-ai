@@ -56,17 +56,27 @@ def optimize():
     best_station = None
     best_score = -999999
     detailed_results = []
+    best_details = None
 
     for s in stations:
 
         score, energy_needed, charging_time, carbon_emission = calculate_score(s, battery)
+
+        explanation = (
+            f"Energy required: {energy_needed} kWh. "
+            f"Estimated charging time: {charging_time} hours. "
+            f"Carbon emission impact: {carbon_emission} kg CO2. "
+            f"Queue length: {s['queue']}. "
+            f"Price per kWh: {s['price_per_kwh']}."
+        )
 
         result = {
             "station_id": s["station_id"],
             "score": round(score, 2),
             "energy_needed_kwh": energy_needed,
             "charging_time_hours": charging_time,
-            "carbon_emission_kg": carbon_emission
+            "carbon_emission_kg": carbon_emission,
+            "explanation": explanation
         }
 
         detailed_results.append(result)
@@ -79,7 +89,8 @@ def optimize():
     return jsonify({
         "recommended_station": best_station,
         "metrics": best_details,
-        "all_station_analysis": detailed_results
+        "all_station_analysis": detailed_results,
+        "system_message": "Optimization completed using cost, time, carbon, and queue factors."
     })
 
 
