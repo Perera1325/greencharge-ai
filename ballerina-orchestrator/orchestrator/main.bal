@@ -1,8 +1,38 @@
 import ballerina/http;
+import ballerina/jwt;
+import ballerina/auth;
 
-service /orchestrator on new http:Listener(8080) {
+listener http:Listener httpListener = new(8080);
 
-    resource function get recommend() returns json|error {
+service /orchestrator on httpListener {
+
+    resource function get recommend(@http:Header {name: "Authorization"} string authHeader)
+            returns json|error {
+
+        if !authHeader.startsWith("Bearer ") {
+            return {
+                error: "Missing or invalid Authorization header"
+            };
+        }
+
+        string token = authHeader.substring(7);
+
+        jwt:Validator validator = new({
+            issuer: "greencharge",
+            audience: ["ev-clients"],
+            signatureConfig: {
+                algorithm: jwt:RS256,
+                certFile: "certs/public.crt"
+            }
+        });
+
+        jwt:Payload|jwt:Error validation = validator.validate(token);
+
+        if validation is jwt:Error {
+            return {
+                error: "Invalid token"
+            };
+        }
 
         http:Client evClient = check new ("http://ev:5001");
         json evResponse = check evClient->get("/ev/status");

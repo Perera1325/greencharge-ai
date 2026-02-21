@@ -1,13 +1,10 @@
-FROM ballerina/ballerina:2201.13.1
+FROM ballerina/ballerina:2201.8.0
 
 WORKDIR /app
 
-USER root
-
 COPY . .
 
-RUN mkdir -p /app/target
-RUN chmod -R 777 /app
+RUN bal build
 
 EXPOSE 8080
 
