@@ -1,17 +1,16 @@
 import ballerina/http;
-import ballerina/log;
 
 service /orchestrator on new http:Listener(8080) {
 
     resource function get recommend() returns json|error {
 
-        http:Client evClient = check new ("http://localhost:5001");
+        http:Client evClient = check new ("http://ev:5001");
         json evResponse = check evClient->get("/ev/status");
 
-        http:Client stationClient = check new ("http://localhost:5002");
+        http:Client stationClient = check new ("http://station:5002");
         json stationsResponse = check stationClient->get("/stations");
 
-        http:Client aiClient = check new ("http://localhost:5003");
+        http:Client aiClient = check new ("http://ai:5003");
 
         int batteryLevel = 0;
 
@@ -24,16 +23,12 @@ service /orchestrator on new http:Listener(8080) {
             }
         }
 
-        log:printInfo("Battery Level: " + batteryLevel.toString());
-
         json payload = {
             battery_level: batteryLevel,
             stations: stationsResponse
         };
 
         json result = check aiClient->post("/optimize", payload);
-
-        log:printInfo("AI Optimization completed");
 
         return {
             vehicle: evResponse,

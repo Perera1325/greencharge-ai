@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+target/
+.ballerina/
+.DS_Store
+node_modules/
+*.log
