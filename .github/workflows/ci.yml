@@ -50,9 +50,9 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-station:latest
 
       # 7️⃣ Build & Push Orchestrator
-      - name: Build and Push Orchestrator
-        uses: docker/build-push-action@v5
-        with:
-          context: ./orchestrator
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
+     - name: Build and Push Orchestrator
+  uses: docker/build-push-action@v5
+  with:
+    context: ./ballerina-orchestrator/orchestrator
+    push: true
+    tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
