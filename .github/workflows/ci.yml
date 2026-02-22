@@ -6,26 +6,25 @@ on:
 
 jobs:
   build-and-push:
-
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout Code
+      # Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Set up Docker
+      # Setup Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      # 3️⃣ Login to Docker Hub
+      # Login to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 4️⃣ Build & Push AI Engine
+      # Build & Push AI Engine
       - name: Build and Push AI
         uses: docker/build-push-action@v5
         with:
@@ -33,7 +32,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ai:latest
 
-      # 5️⃣ Build & Push EV Simulator
+      # Build & Push EV Simulator
       - name: Build and Push EV
         uses: docker/build-push-action@v5
         with:
@@ -41,7 +40,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ev:latest
 
-      # 6️⃣ Build & Push Station Simulator
+      # Build & Push Station Simulator
       - name: Build and Push Station
         uses: docker/build-push-action@v5
         with:
@@ -49,10 +48,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-station:latest
 
-      # 7️⃣ Build & Push Orchestrator
-     - name: Build and Push Orchestrator
-  uses: docker/build-push-action@v5
-  with:
-    context: ./ballerina-orchestrator/orchestrator
-    push: true
-    tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
+      # Build & Push Orchestrator
+      - name: Build and Push Orchestrator
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ballerina-orchestrator/orchestrator
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
