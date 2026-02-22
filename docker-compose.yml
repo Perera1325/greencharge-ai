@@ -4,19 +4,16 @@ services:
     build: ./ev-simulator
     ports:
       - "5001:5001"
-    restart: always
 
   station:
     build: ./station-simulator
     ports:
       - "5002:5002"
-    restart: always
 
   ai:
     build: ./ai-engine
     ports:
       - "5003:5003"
-    restart: always
 
   orchestrator:
     build: ./ballerina-orchestrator/orchestrator
@@ -26,4 +23,13 @@ services:
       - ev
       - station
       - ai
-    restart: always
+
+  wso2am:
+    image: wso2/wso2am:latest
+    container_name: wso2am
+    ports:
+      - "9443:9443"
+      - "8280:8280"
+      - "8243:8243"
+    environment:
+      JVM_MEM_OPTS: "-Xms512m -Xmx1024m"
