@@ -172,3 +172,9 @@ This project explores how distributed EV charging systems can be optimized using
 
 
 
+Enterprise API Management Layer
+
+
+
+The system is now exposed through WSO2 API Manager. The API is published, subscribed, and protected using OAuth2 access tokens. This introduces full API lifecycle management, gateway routing, and access control before reaching the internal Ballerina orchestration layer.
+

@@ -1,0 +1,59 @@
+name: GreenCharge AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout Code
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 3️⃣ Install Python Dependencies
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          cd ev-simulator && pip install -r requirements.txt && cd ..
+          cd station-simulator && pip install -r requirements.txt && cd ..
+          cd ai-engine && pip install -r requirements.txt && cd ..
+
+      # 4️⃣ Validate Docker Compose
+      - name: Validate Docker Compose
+        run: docker compose config
+
+      # 5️⃣ Build Docker Images
+      - name: Build Docker Images
+        run: docker compose build
+
+      # 6️⃣ Login to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 7️⃣ Tag and Push Images
+      - name: Tag and Push Images
+        run: |
+          docker tag greencharge-ai-ai ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ai:latest
+          docker tag greencharge-ai-ev ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ev:latest
+          docker tag greencharge-ai-station ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-station:latest
+          docker tag greencharge-ai-orchestrator ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ai:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-ev:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-station:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/greencharge-ai-orchestrator:latest
